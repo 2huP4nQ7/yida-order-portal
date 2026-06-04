@@ -3,405 +3,779 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>钉钉宜搭 订单管理系统</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>订单管理系统 - 宜搭嵌入版</title>
+  <style>
+    :root {
+      --active: #d9f4ee;
+      --line: #bfd2ea;
+      --head: #dff2fb;
+      --green: #3dcc98;
+      --blue: #5d9cec;
+      --yellow: #ffbf24;
+      --pink: #f45f7f;
+      --purple: #8d6be8;
+      --teal: #168b7a;
+      --orange: #c45100;
+      --text: #001532;
+      --muted: #254b80;
+      --bg: #f4f7fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .embed-app {
+      width: 100%;
+      min-height: 100vh;
+      padding: 22px 28px 42px;
+      background: var(--bg);
+    }
+
+    .tabs {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tabs input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .tab-label,
+    .real-link {
+      flex: 0 0 auto;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      border: 1px solid #d4e1ef;
+      border-radius: 8px;
+      background: #fff;
+      color: #001532;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .real-link {
+      margin-left: auto;
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+    }
+
+    #tab-home:checked ~ .tabs label[for="tab-home"],
+    #tab-orders:checked ~ .tabs label[for="tab-orders"],
+    #tab-form:checked ~ .tabs label[for="tab-form"],
+    #tab-flow:checked ~ .tabs label[for="tab-flow"],
+    #tab-reports:checked ~ .tabs label[for="tab-reports"] {
+      background: var(--active);
+      border-color: var(--active);
+      font-weight: 900;
+    }
+
+    .page {
+      display: none;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    #tab-home:checked ~ .pages .page-home,
+    #tab-orders:checked ~ .pages .page-orders,
+    #tab-form:checked ~ .pages .page-form,
+    #tab-flow:checked ~ .pages .page-flow,
+    #tab-reports:checked ~ .pages .page-reports {
+      display: block;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 0 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.08;
+      font-weight: 900;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .button {
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--teal);
+      font-size: 17px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .button.secondary {
+      color: #001532;
+      background: #e2e7ee;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .kpi {
+      min-height: 112px;
+      padding: 18px 24px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .kpi h3 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .kpi .num {
+      margin-top: 5px;
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .kpi .hint {
+      margin-top: 3px;
+      color: #173a65;
+      font-size: 14px;
+    }
+
+    .kpi-blue { background: #dff2fb; }
+    .kpi-green { background: #e6f7f1; }
+    .kpi-yellow { background: #fff4c8; }
+    .kpi-pink { background: #fbddde; }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+      gap: 24px;
+    }
+
+    .panel,
+    .card {
+      padding: 24px 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .panel h2,
+    .card h2 {
+      margin: 0 0 18px;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .bar-chart {
+      height: 392px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      gap: 12px;
+      padding: 24px 14px 28px;
+    }
+
+    .bar-item {
+      width: 72px;
+      text-align: center;
+    }
+
+    .bar {
+      width: 55px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 3px;
+      color: #001532;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .bar-label { font-size: 14px; }
+
+    .task {
+      min-height: 57px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding: 12px 16px 12px 22px;
+      border: 1px solid #d4e1ef;
+      border-radius: 9px;
+      background: #f8fbff;
+    }
+
+    .task strong {
+      font-size: 19px;
+      white-space: nowrap;
+    }
+
+    .badge {
+      min-width: 112px;
+      height: 29px;
+      line-height: 29px;
+      border-radius: 16px;
+      color: #fff;
+      text-align: center;
+      font-weight: 900;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .blue { background: var(--blue); }
+    .yellow { background: #ffb51b; }
+    .purple { background: var(--purple); }
+    .pink { background: var(--pink); }
+    .green { background: var(--green); }
+
+    .wide-card {
+      min-height: 600px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr)) 150px;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .fake-input {
+      height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #f8fbff;
+      color: #666;
+      line-height: 38px;
+      font-size: 16px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #d7e1ee;
+    }
+
+    table {
+      width: 100%;
+      min-width: 840px;
+      border-collapse: collapse;
+      font-size: 16px;
+    }
+
+    th {
+      height: 43px;
+      padding: 0 12px;
+      background: var(--head);
+      text-align: left;
+      font-weight: 900;
+    }
+
+    td {
+      height: 58px;
+      padding: 0 12px;
+      border-bottom: 1px solid #d7e1ee;
+      white-space: nowrap;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .status {
+      display: inline-block;
+      min-width: 82px;
+      height: 29px;
+      line-height: 29px;
+      border-radius: 16px;
+      color: #fff;
+      text-align: center;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 58px;
+      margin-bottom: 30px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 900;
+      font-size: 16px;
+    }
+
+    .field .fake-input {
+      width: 100%;
+      color: #001532;
+    }
+
+    .total {
+      margin: 14px 0 24px;
+      text-align: right;
+      color: var(--orange);
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+
+    .flow-title {
+      margin: 2px 0 60px;
+      font-size: 28px;
+    }
+
+    .steps {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin: 0 24px 64px;
+    }
+
+    .steps::before {
+      content: "";
+      position: absolute;
+      top: 31px;
+      left: 42px;
+      right: 42px;
+      height: 4px;
+      background: #c9d6e8;
+    }
+
+    .step {
+      position: relative;
+      text-align: center;
+    }
+
+    .dot {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      border: 1px solid #92add0;
+      border-radius: 50%;
+      background: #e8f1f8;
+      line-height: 64px;
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .dot.done {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .dot.current {
+      border-color: #5d9cec;
+      background: var(--yellow);
+      color: #fff;
+    }
+
+    .step h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .note {
+      margin: 0 24px;
+      padding: 24px 28px;
+      border: 1px solid #d2deeb;
+      border-radius: 10px;
+      background: #f8fbff;
+    }
+
+    .note h3 {
+      margin: 0 0 10px;
+      color: var(--orange);
+      font-size: 24px;
+    }
+
+    .note p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    .report-grid {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr);
+      gap: 24px;
+    }
+
+    .trend { min-height: 560px; }
+
+    .line-chart {
+      position: relative;
+      height: 430px;
+      margin: 20px 20px 0;
+      border-left: 2px solid #c7d3e1;
+      border-bottom: 2px solid #c7d3e1;
+    }
+
+    .line-chart svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .xlabels {
+      display: flex;
+      justify-content: space-between;
+      margin: 24px 4px 0;
+      color: var(--muted);
+    }
+
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      min-height: 210px;
+    }
+
+    .donut {
+      width: 190px;
+      height: 190px;
+      flex: 0 0 190px;
+      border-radius: 50%;
+      background: conic-gradient(var(--purple) 0 20%, var(--blue) 20% 40%, var(--green) 40% 68%, var(--yellow) 68% 83%, var(--pink) 83% 100%);
+      position: relative;
+    }
+
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 43px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .legend div {
+      margin: 12px 0;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .sw {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 12px;
+      vertical-align: middle;
+    }
+
+    .warning {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+      padding: 9px 22px;
+      border: 1px solid #d7e1ee;
+      border-radius: 7px;
+      background: #f8fbff;
+      font-weight: 900;
+    }
+
+    .warn-orange { color: #c45100; }
+    .warn-pink { color: #ff1455; }
+    .warn-purple { color: #7a49ff; }
+    .warn-blue { color: #0076d7; }
+
+    @media (max-width: 1100px) {
+      .embed-app { padding: 18px 16px 36px; }
+      .kpi-grid,
+      .panel-grid,
+      .report-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .steps {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        margin: 0 0 34px;
+      }
+
+      .steps::before { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      .page-head,
+      .form-grid,
+      .filters {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+
+      .page-head {
+        display: block;
+      }
+
+      h1 { font-size: 30px; }
+      .tabs { align-items: stretch; }
+      .real-link { margin-left: 0; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .donut-wrap { flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div class="brand">钉钉宜搭&nbsp;&nbsp;订单管理系统</div>
-      <div class="user">销售员&nbsp;&nbsp;王同学</div>
-    </header>
+  <div class="embed-app">
+    <input checked id="tab-home" name="oms-tab" type="radio">
+    <input id="tab-orders" name="oms-tab" type="radio">
+    <input id="tab-form" name="oms-tab" type="radio">
+    <input id="tab-flow" name="oms-tab" type="radio">
+    <input id="tab-reports" name="oms-tab" type="radio">
 
-    <aside class="sidebar" aria-label="系统导航">
-      <button class="nav-item active" data-view="home">工作台</button>
-      <button class="nav-item" data-view="orders">订单管理</button>
-      <button class="nav-item" data-view="customers">客户资料</button>
-      <button class="nav-item" data-view="prices">商品价格</button>
-      <button class="nav-item" data-view="delivery">配送任务</button>
-      <button class="nav-item" data-view="payment">收款对账</button>
-      <button class="nav-item" data-view="reports">报表中心</button>
-      <button class="nav-item" data-view="settings">系统设置</button>
-    </aside>
+    <nav class="tabs">
+      <label class="tab-label" for="tab-home">工作台</label>
+      <label class="tab-label" for="tab-orders">订单管理</label>
+      <label class="tab-label" for="tab-form">新建订单</label>
+      <label class="tab-label" for="tab-flow">流程轨迹</label>
+      <label class="tab-label" for="tab-reports">报表中心</label>
+      <a class="real-link" href="https://www.aliwork.com/APP_A2OTCB87ZEFNFM47MHVP/workbench" target="_blank" rel="noopener">进入真实宜搭</a>
+    </nav>
 
-    <main class="content">
-      <section class="view page-home active" data-page="home">
-        <div class="page-heading">
-          <h1>工作台</h1>
-          <p>展示订单处理进度、待办事项和异常预警</p>
+    <div class="pages">
+      <section class="page page-home">
+        <div class="page-head">
+          <div>
+            <h1>工作台</h1>
+            <p class="subtitle">展示订单处理进度、待办事项和异常预警</p>
+          </div>
+          <label class="button" for="tab-form">新建订单</label>
         </div>
-
-        <div class="metric-grid">
-          <article class="metric metric-blue">
-            <h2>今日新增订单</h2>
-            <strong>36</strong>
-            <span>较昨日 +8</span>
-          </article>
-          <article class="metric metric-green">
-            <h2>待审核</h2>
-            <strong>12</strong>
-            <span>平均等待 1.6h</span>
-          </article>
-          <article class="metric metric-yellow">
-            <h2>待发货</h2>
-            <strong>24</strong>
-            <span>缺货 3 单</span>
-          </article>
-          <article class="metric metric-red">
-            <h2>本月销售额</h2>
-            <strong>128.6 万</strong>
-            <span>回款率 86%</span>
-          </article>
+        <div class="kpi-grid">
+          <div class="kpi kpi-blue"><h3>今日新增订单</h3><div class="num">36</div><div class="hint">较昨日 +8</div></div>
+          <div class="kpi kpi-green"><h3>待审核</h3><div class="num">12</div><div class="hint">平均等待 1.6h</div></div>
+          <div class="kpi kpi-yellow"><h3>待发货</h3><div class="num">24</div><div class="hint">缺货 3 单</div></div>
+          <div class="kpi kpi-pink"><h3>本月销售额</h3><div class="num">128.6 万</div><div class="hint">回款率 86%</div></div>
         </div>
-
-        <div class="home-panels">
-          <section class="panel status-panel">
+        <div class="panel-grid">
+          <div class="panel">
             <h2>订单状态分布</h2>
-            <div class="bar-chart" aria-label="订单状态分布柱状图">
-              <div class="bar-item">
-                <span class="bar-value">18</span>
-                <span class="bar bar-draft"></span>
-                <span class="bar-label">草稿</span>
-              </div>
-              <div class="bar-item">
-                <span class="bar-value">34</span>
-                <span class="bar bar-review"></span>
-                <span class="bar-label">审核中</span>
-              </div>
-              <div class="bar-item">
-                <span class="bar-value">52</span>
-                <span class="bar bar-ship"></span>
-                <span class="bar-label">待发货</span>
-              </div>
-              <div class="bar-item">
-                <span class="bar-value">40</span>
-                <span class="bar bar-deliver"></span>
-                <span class="bar-label">配送中</span>
-              </div>
-              <div class="bar-item">
-                <span class="bar-value">76</span>
-                <span class="bar bar-done"></span>
-                <span class="bar-label">已完成</span>
-              </div>
+            <div class="bar-chart">
+              <div class="bar-item"><div class="bar" style="height:74px;background:#9aaabe;">18</div><div class="bar-label">草稿</div></div>
+              <div class="bar-item"><div class="bar" style="height:148px;background:#5d9cec;">34</div><div class="bar-label">审核中</div></div>
+              <div class="bar-item"><div class="bar" style="height:208px;background:#ffc225;">52</div><div class="bar-label">待发货</div></div>
+              <div class="bar-item"><div class="bar" style="height:164px;background:#f45f7f;">40</div><div class="bar-label">配送中</div></div>
+              <div class="bar-item"><div class="bar" style="height:292px;background:#3dcc98;">76</div><div class="bar-label">已完成</div></div>
             </div>
-          </section>
-
-          <section class="panel todo-panel">
+          </div>
+          <div class="panel">
             <h2>待办任务</h2>
-            <div class="todo-list">
-              <button class="todo-row" data-view="approval">
-                <span>OMS-20260602-0007</span>
-                <b class="pill pill-blue">主管审核</b>
-              </button>
-              <button class="todo-row" data-view="approval">
-                <span>OMS-20260602-0011</span>
-                <b class="pill pill-yellow">库存确认</b>
-              </button>
-              <button class="todo-row" data-view="approval">
-                <span>OMS-20260601-0029</span>
-                <b class="pill pill-purple">财务开票</b>
-              </button>
-              <button class="todo-row" data-view="approval">
-                <span>OMS-20260601-0032</span>
-                <b class="pill pill-red">异常处理</b>
-              </button>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section class="view page-order-form" data-page="order-form">
-        <div class="page-heading">
-          <h1>订单管理</h1>
-          <p>流程表单：销售员录入，提交后进入主管审核和库存确认</p>
-        </div>
-
-        <section class="panel form-panel">
-          <h2>新建订单</h2>
-          <form>
-            <div class="form-grid">
-              <label>
-                <span>订单编号</span>
-                <input value="系统自动生成 OMS-20260602-0008" readonly>
-              </label>
-              <label>
-                <span>客户名称</span>
-                <input value="杭州星河南贸有限公司" readonly>
-              </label>
-              <label>
-                <span>联系人</span>
-                <input value="陈经理  138****7788" readonly>
-              </label>
-              <label>
-                <span>交货日期</span>
-                <input value="2026-06-05" readonly>
-              </label>
-              <label>
-                <span>配送地址</span>
-                <input value="杭州市钱塘区智慧物流园 3 号库" readonly>
-              </label>
-              <label>
-                <span>付款方式</span>
-                <input value="月结 30 天" readonly>
-              </label>
-            </div>
-          </form>
-
-          <table class="detail-table">
-            <thead>
-              <tr>
-                <th>商品编号</th>
-                <th>商品名称</th>
-                <th>规格</th>
-                <th>数量</th>
-                <th>单价</th>
-                <th>小计</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>SKU-ELC-0001</td>
-                <td>智能分拣标签</td>
-                <td>100 张/包</td>
-                <td>12</td>
-                <td>68.00</td>
-                <td>816.00</td>
-              </tr>
-              <tr>
-                <td>SKU-PKG-0007</td>
-                <td>防震包装箱</td>
-                <td>50 个/箱</td>
-                <td>20</td>
-                <td>42.00</td>
-                <td>840.00</td>
-              </tr>
-              <tr>
-                <td>SKU-DEV-0012</td>
-                <td>扫码终端支架</td>
-                <td>套</td>
-                <td>6</td>
-                <td>120.00</td>
-                <td>720.00</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="form-total">订单合计：2,376.00 元</div>
-          <div class="form-actions">
-            <button type="button" class="button button-muted">保存草稿</button>
-            <button type="button" class="button button-primary">提交</button>
+            <div class="task"><strong>OMS-20260602-0007</strong><span class="badge blue">主管审核</span></div>
+            <div class="task"><strong>OMS-20260602-0011</strong><span class="badge yellow">库存确认</span></div>
+            <div class="task"><strong>OMS-20260601-0029</strong><span class="badge purple">财务开票</span></div>
+            <div class="task"><strong>OMS-20260601-0032</strong><span class="badge pink">异常处理</span></div>
           </div>
-        </section>
+        </div>
       </section>
 
-      <section class="view page-orders" data-page="orders">
-        <div class="page-heading">
-          <h1>订单管理</h1>
-          <p>数据管理页：支持按客户、状态、日期、金额区间快速筛选</p>
+      <section class="page page-orders">
+        <div class="page-head">
+          <div>
+            <h1>订单管理</h1>
+            <p class="subtitle">数据管理页：支持按客户、状态、日期、金额区间快速筛选</p>
+          </div>
+          <label class="button" for="tab-form">新建订单</label>
         </div>
-
-        <section class="panel list-panel">
+        <div class="card wide-card">
           <h2>订单列表</h2>
-          <div class="filter-row">
-            <input placeholder="客户名称" readonly>
-            <input placeholder="订单状态" readonly>
-            <input placeholder="起止日期" readonly>
-            <input placeholder="销售员" readonly>
-            <input placeholder="高级筛选" readonly>
-            <button class="button button-primary" data-view="order-form" type="button">新建订单</button>
+          <div class="filters">
+            <div class="fake-input">客户名称</div>
+            <div class="fake-input">订单状态</div>
+            <div class="fake-input">起止日期</div>
+            <div class="fake-input">销售员</div>
+            <div class="fake-input">高级筛选</div>
+            <label class="button" for="tab-form">新建订单</label>
           </div>
-
-          <table class="order-table">
-            <thead>
-              <tr>
-                <th>订单编号</th>
-                <th>客户</th>
-                <th>金额</th>
-                <th>状态</th>
-                <th>交货日期</th>
-                <th>责任人</th>
-                <th>更新时间</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="click-row" data-view="approval">
-                <td>OMS-20260602-0008</td>
-                <td>杭州星河南贸</td>
-                <td>2,376.00</td>
-                <td><b class="status status-blue">审核中</b></td>
-                <td>06-05</td>
-                <td>王同学</td>
-                <td>10:28</td>
-              </tr>
-              <tr>
-                <td>OMS-20260602-0007</td>
-                <td>绍兴云仓供应链</td>
-                <td>18,900.00</td>
-                <td><b class="status status-yellow">待发货</b></td>
-                <td>06-04</td>
-                <td>李同学</td>
-                <td>09:41</td>
-              </tr>
-              <tr>
-                <td>OMS-20260601-0034</td>
-                <td>宁波海越贸易</td>
-                <td>6,240.00</td>
-                <td><b class="status status-red">配送中</b></td>
-                <td>06-03</td>
-                <td>赵同学</td>
-                <td>昨日</td>
-              </tr>
-              <tr>
-                <td>OMS-20260601-0029</td>
-                <td>嘉兴嘉运物流</td>
-                <td>31,600.00</td>
-                <td><b class="status status-purple">待收款</b></td>
-                <td>06-02</td>
-                <td>王同学</td>
-                <td>昨日</td>
-              </tr>
-              <tr>
-                <td>OMS-20260531-0018</td>
-                <td>杭州星河南贸</td>
-                <td>4,880.00</td>
-                <td><b class="status status-green">已完成</b></td>
-                <td>06-01</td>
-                <td>钱同学</td>
-                <td>05-31</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>订单编号</th><th>客户</th><th>金额</th><th>状态</th><th>交货日期</th><th>责任人</th><th>更新时间</th></tr></thead>
+              <tbody>
+                <tr><td>OMS-20260602-0008</td><td>杭州星河南贸</td><td>2,376.00</td><td><span class="status blue">审核中</span></td><td>06-05</td><td>王同学</td><td>10:28</td></tr>
+                <tr><td>OMS-20260602-0007</td><td>绍兴云仓供应链</td><td>18,900.00</td><td><span class="status yellow">待发货</span></td><td>06-04</td><td>李同学</td><td>09:41</td></tr>
+                <tr><td>OMS-20260601-0034</td><td>宁波海越贸易</td><td>6,240.00</td><td><span class="status pink">配送中</span></td><td>06-03</td><td>赵同学</td><td>昨日</td></tr>
+                <tr><td>OMS-20260601-0029</td><td>嘉兴嘉运物流</td><td>31,600.00</td><td><span class="status purple">待收款</span></td><td>06-02</td><td>王同学</td><td>昨日</td></tr>
+                <tr><td>OMS-20260531-0018</td><td>杭州星河南贸</td><td>4,880.00</td><td><span class="status green">已完成</span></td><td>06-01</td><td>钱同学</td><td>05-31</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
-      <section class="view page-approval" data-page="approval">
-        <div class="page-heading">
-          <h1>订单管理</h1>
-          <p>流程中心：订单从提交到关闭的审批与办理轨迹</p>
-        </div>
-
-        <section class="panel approval-panel">
-          <h2>订单 OMS-20260602-0008 流程轨迹</h2>
-          <div class="timeline">
-            <div class="step done">
-              <b>1</b>
-              <strong>提交订单</strong>
-              <span>销售员</span>
-            </div>
-            <div class="step done">
-              <b>2</b>
-              <strong>主管审核</strong>
-              <span>销售主管</span>
-            </div>
-            <div class="step current">
-              <b>3</b>
-              <strong>库存确认</strong>
-              <span>仓储员</span>
-            </div>
-            <div class="step">
-              <b>4</b>
-              <strong>发货登记</strong>
-              <span>物流调度</span>
-            </div>
-            <div class="step">
-              <b>5</b>
-              <strong>签收确认</strong>
-              <span>客户/销售</span>
-            </div>
-            <div class="step">
-              <b>6</b>
-              <strong>财务对账</strong>
-              <span>财务</span>
-            </div>
-            <div class="step">
-              <b>7</b>
-              <strong>订单关闭</strong>
-              <span>系统</span>
-            </div>
+      <section class="page page-form">
+        <div class="page-head">
+          <div>
+            <h1>订单管理</h1>
+            <p class="subtitle">流程表单：销售员录入，提交后进入主管审核和库存确认</p>
           </div>
+          <a class="button" href="https://www.aliwork.com/APP_A2OTCB87ZEFNFM47MHVP/workbench" target="_blank" rel="noopener">宜搭填单</a>
+        </div>
+        <div class="card wide-card">
+          <h2>新建订单</h2>
+          <div class="form-grid">
+            <div class="field"><label>订单编号</label><div class="fake-input">系统自动生成 OMS-20260602-0008</div></div>
+            <div class="field"><label>客户名称</label><div class="fake-input">杭州星河南贸有限公司</div></div>
+            <div class="field"><label>联系人</label><div class="fake-input">陈经理&nbsp; 138****7788</div></div>
+            <div class="field"><label>交货日期</label><div class="fake-input">2026-06-05</div></div>
+            <div class="field"><label>配送地址</label><div class="fake-input">杭州市钱塘区智慧物流园 3 号库</div></div>
+            <div class="field"><label>付款方式</label><div class="fake-input">月结 30 天</div></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>商品编号</th><th>商品名称</th><th>规格</th><th>数量</th><th>单价</th><th>小计</th></tr></thead>
+              <tbody>
+                <tr><td>SKU-ELC-0001</td><td>智能分拣标签</td><td>100 张/包</td><td>12</td><td>68.00</td><td>816.00</td></tr>
+                <tr><td>SKU-PKG-0007</td><td>防震包装箱</td><td>50 个/箱</td><td>20</td><td>42.00</td><td>840.00</td></tr>
+                <tr><td>SKU-DEV-0012</td><td>扫码终端支架</td><td>套</td><td>6</td><td>120.00</td><td>720.00</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="total">订单合计： 2,376.00 元</div>
+          <div class="actions">
+            <label class="button secondary" for="tab-orders">保存草稿</label>
+            <a class="button" href="https://www.aliwork.com/APP_A2OTCB87ZEFNFM47MHVP/workbench" target="_blank" rel="noopener">提交</a>
+          </div>
+        </div>
+      </section>
 
-          <div class="notice">
+      <section class="page page-flow">
+        <div class="page-head">
+          <div>
+            <h1>订单管理</h1>
+            <p class="subtitle">流程中心：订单从提交到关闭的审批与办理轨迹</p>
+          </div>
+          <a class="button secondary" href="https://www.aliwork.com/APP_A2OTCB87ZEFNFM47MHVP/workbench" target="_blank" rel="noopener">查看真实流程</a>
+        </div>
+        <div class="card wide-card">
+          <h2 class="flow-title">订单 OMS-20260602-0008 流程轨迹</h2>
+          <div class="steps">
+            <div class="step"><div class="dot done">1</div><h3>提交订单</h3><p>销售员</p></div>
+            <div class="step"><div class="dot done">2</div><h3>主管审核</h3><p>销售主管</p></div>
+            <div class="step"><div class="dot current">3</div><h3>库存确认</h3><p>仓储员</p></div>
+            <div class="step"><div class="dot">4</div><h3>发货登记</h3><p>物流调度</p></div>
+            <div class="step"><div class="dot">5</div><h3>签收确认</h3><p>客户/销售</p></div>
+            <div class="step"><div class="dot">6</div><h3>财务对账</h3><p>财务</p></div>
+            <div class="step"><div class="dot">7</div><h3>订单关闭</h3><p>系统</p></div>
+          </div>
+          <div class="note">
             <h3>当前节点： 库存确认</h3>
             <p>系统已根据订单明细读取商品库存，可用库存不足时自动生成缺货预警。</p>
             <p>仓储员需确认占用库存、预计出库日期和拣货负责人，确认后流程自动流转到发货登记。</p>
             <p>所有节点意见、办理人和时间写入操作日志，便于后续追溯。</p>
           </div>
-        </section>
+        </div>
       </section>
 
-      <section class="view page-reports" data-page="reports">
-        <div class="page-heading">
-          <h1>报表中心</h1>
-          <p>宜搭报表页：按订单状态、客户、商品、履约时效多维分析</p>
+      <section class="page page-reports">
+        <div class="page-head">
+          <div>
+            <h1>报表中心</h1>
+            <p class="subtitle">直播报表页：按订单状态、客户、商品、履约时效多维分析</p>
+          </div>
+          <a class="button secondary" href="https://www.aliwork.com/APP_A2OTCB87ZEFNFM47MHVP/workbench" target="_blank" rel="noopener">宜搭报表</a>
         </div>
-
         <div class="report-grid">
-          <section class="panel trend-panel">
+          <div class="panel trend">
             <h2>订单金额趋势</h2>
-            <svg class="line-chart" viewBox="0 0 420 500" role="img" aria-label="订单金额趋势折线图">
-              <line x1="46" y1="22" x2="46" y2="452" class="axis"></line>
-              <line x1="46" y1="452" x2="404" y2="452" class="axis"></line>
-              <polyline class="trend-line" points="56,240 115,210 174,260 232,190 291,170 350,220 407,150"></polyline>
-              <g class="points">
-                <circle cx="56" cy="240" r="5"></circle>
-                <circle cx="115" cy="210" r="5"></circle>
-                <circle cx="174" cy="260" r="5"></circle>
-                <circle cx="232" cy="190" r="5"></circle>
-                <circle cx="291" cy="170" r="5"></circle>
-                <circle cx="350" cy="220" r="5"></circle>
-                <circle cx="407" cy="150" r="5"></circle>
-              </g>
-              <g class="chart-labels">
-                <text x="38" y="492">6/1</text>
-                <text x="97" y="492">6/2</text>
-                <text x="156" y="492">6/3</text>
-                <text x="214" y="492">6/4</text>
-                <text x="273" y="492">6/5</text>
-                <text x="332" y="492">6/6</text>
-                <text x="390" y="492">6/7</text>
-              </g>
-            </svg>
-          </section>
-
-          <section class="panel donut-panel">
-            <h2>状态占比</h2>
-            <div class="donut-wrap">
-              <div class="donut" aria-label="状态占比环形图"></div>
-              <div class="legend">
-                <span><i class="legend-blue"></i>审核中</span>
-                <span><i class="legend-green"></i>待发货</span>
-                <span><i class="legend-yellow"></i>配送中</span>
-                <span><i class="legend-red"></i>待收款</span>
-                <span><i class="legend-purple"></i>已完成</span>
+            <div class="line-chart">
+              <svg viewBox="0 0 420 430" preserveAspectRatio="none">
+                <polyline fill="none" stroke="#168b7a" stroke-width="5" points="10,230 80,200 150,252 220,178 290,156 350,212 415,134"></polyline>
+                <g fill="#168b7a">
+                  <circle cx="10" cy="230" r="5"></circle><circle cx="80" cy="200" r="5"></circle><circle cx="150" cy="252" r="5"></circle><circle cx="220" cy="178" r="5"></circle><circle cx="290" cy="156" r="5"></circle><circle cx="350" cy="212" r="5"></circle><circle cx="415" cy="134" r="5"></circle>
+                </g>
+              </svg>
+            </div>
+            <div class="xlabels"><span>6/1</span><span>6/2</span><span>6/3</span><span>6/4</span><span>6/5</span><span>6/6</span><span>6/7</span></div>
+          </div>
+          <div>
+            <div class="panel" style="min-height:285px;margin-bottom:24px;">
+              <h2>状态占比</h2>
+              <div class="donut-wrap">
+                <div class="donut"></div>
+                <div class="legend">
+                  <div><span class="sw" style="background:#5d9cec"></span>审核中</div>
+                  <div><span class="sw" style="background:#3dcc98"></span>待发货</div>
+                  <div><span class="sw" style="background:#ffc225"></span>配送中</div>
+                  <div><span class="sw" style="background:#f45f7f"></span>待收款</div>
+                  <div><span class="sw" style="background:#8d6be8"></span>已完成</div>
+                </div>
               </div>
             </div>
-          </section>
-
-          <section class="panel warning-panel">
-            <h2>异常预警</h2>
-            <div class="warning-list">
-              <div><span>库存不足订单</span><b class="warn-orange">3 单</b></div>
-              <div><span>逾期未发货</span><b class="warn-pink">2 单</b></div>
-              <div><span>超过信用额度</span><b class="warn-violet">1 单</b></div>
-              <div><span>待回款超过 30 天</span><b class="warn-blue">5 单</b></div>
+            <div class="panel" style="min-height:320px;">
+              <h2>异常预警</h2>
+              <div class="warning"><span>库存不足订单</span><span class="warn-orange">3 单</span></div>
+              <div class="warning"><span>逾期未发货</span><span class="warn-pink">2 单</span></div>
+              <div class="warning"><span>超过信用额度</span><span class="warn-purple">1 单</span></div>
+              <div class="warning"><span>待回款超过 30 天</span><span class="warn-blue">5 单</span></div>
             </div>
-          </section>
+          </div>
         </div>
       </section>
-
-      <section class="view page-placeholder" data-page="placeholder">
-        <div class="page-heading">
-          <h1 id="placeholderTitle">客户资料</h1>
-          <p>当前模块沿用宜搭订单管理系统的统一页面框架。</p>
-        </div>
-        <section class="panel placeholder-panel">
-          <h2>模块页面</h2>
-          <p>文档呈现效果图重点展示了工作台、订单管理、流程轨迹和报表中心，本页面保留相同系统壳层与导航状态。</p>
-        </section>
-      </section>
-    </main>
+    </div>
   </div>
-
-  <script src="app.js"></script>
 </body>
 </html>
